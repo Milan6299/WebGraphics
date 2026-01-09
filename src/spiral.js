@@ -68,9 +68,9 @@ function translateZ({ x, y, z }, dz) {
   }
 }
 
-const FPS = 60
+const FPS = 120
 const dt = 1 / FPS
-const playtime = 2000
+const playtime = 4000
 
 let dz = 1
 let angle = 0
