@@ -126,29 +126,71 @@ function line(p1, p2) {
   ctx.lineTo(p2.x, p2.y);
   ctx.stroke();
 }
+function faceFill(x1, y1, x2, y2, color) {
+  const w = x2 - x1;
+  const h = y2 - y1;
+  ctx.fillStyle = color;
+  ctx.fillRect(x1, y1, w, h);
+}
+function renderEdge(length, f) {
+  for (let i = 0; i < length; i++) {
+    const p1 = vs[f[i]]
+    const p2 = vs[f[(i + 1) % length]]
+    // console.log(f, " values: ", p1, p2)
+    // if (p1.z == 0 || p2.z == 0) continue
+    const NEAR = 0.01;
+    const v1 = translateZ(rotateXZ(p1, angle), dz);
+    const v2 = translateZ(rotateXZ(p2, angle), dz);
+    if (v1.z <= NEAR || v2.z <= NEAR) continue;
+    line(
+      screen(project(v1)),
+      screen(project(v2))
+    );
+  }
+}
+const fs2 = [
+  // front back
+  [0, 1, 2, 3],
+  [4, 5, 6, 7],
+  // left right
+  [1, 2, 6, 5],
+  [0, 3, 7, 4],
+  // top bottom
+  [0, 1, 5, 4],
+  [2, 3, 7, 6],
+];
+function renderFace(f, color) {
+  const NEAR = 0.01;
+  const path = new Path2D();
+  let v0 = translateZ(rotateXZ(vs[f[0]], angle), dz);
+  if (v0.z <= NEAR) return;
+
+  let p0 = screen(project(v0));
+  path.moveTo(p0.x, p0.y);
+
+  for (let i = 1; i < f.length; i++) {
+    let v = translateZ(rotateXZ(vs[f[i]], angle), dz);
+    if (v.z <= NEAR) return;
+    let p = screen(project(v));
+    path.lineTo(p.x, p.y);
+  }
+
+  path.closePath();
+  ctx.fillStyle = color;
+  ctx.fill(path);
+}
 function animate() {
   if (!running) return
   // dz += 0.3 * dt;
   dz = 1;
   angle += Math.PI * dt;
+  const colors = ["red", "blue", "orange", "green", "cyan", "magenta"];
+
   clr();
-  for (let f of fs) {
-    // console.log(f)
-    for (let i = 0; i < f.length; i++) {
-      const p1 = vs[f[i]]
-      const p2 = vs[f[(i + 1) % f.length]]
-      // console.log(f, " values: ", p1, p2)
-      // if (p1.z == 0 || p2.z == 0) continue
-      const NEAR = 0.01;
-      const v1 = translateZ(rotateXZ(p1, angle), dz);
-      const v2 = translateZ(rotateXZ(p2, angle), dz);
-      if (v1.z <= NEAR || v2.z <= NEAR) continue;
-      line(
-        screen(project(v1)),
-        screen(project(v2))
-      );
-    }
-  }
+  fs2.forEach((f, i) => {
+    renderFace(f, colors[i % colors.length]);
+  });
+
   requestAnimationFrame(animate)
 };
 animate()
@@ -156,15 +198,15 @@ animate()
 pau.addEventListener('click', () => {
   running = false;
 })
-setTimeout(() => {
-  animate();
-  running = false;
-  ctx.fillStyle = "red";
-  ctx.font = "20px monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("Show Over!", width / 2, height / 2);
-}, playtime);
+// setTimeout(() => {
+//   animate();
+//   running = false;
+//   ctx.fillStyle = "red";
+//   ctx.font = "20px monospace";
+//   ctx.textAlign = "center";
+//   ctx.textBaseline = "middle";
+//   ctx.fillText("Show Over!", width / 2, height / 2);
+// }, playtime);
 res.addEventListener('click', () => {
   running = true;
   animate();
