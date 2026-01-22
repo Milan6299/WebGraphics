@@ -1,7 +1,11 @@
 console.log(game);
-const BG = '#494949';
-const FG = 'rgb(100,255,50)';
 const ctx = game.getContext("2d");
+
+const BG = '#494949';
+const EDGE = '#101010';
+const FG = 'rgb(100,255,50)';
+const NEAR = 0.01;
+
 game.width = 300;
 game.height = 300;
 // game.width = 1000
@@ -43,6 +47,7 @@ function rotateXZ({ x, y, z }, angle) {
     z: x * s + z * c,
   };
 }
+
 function rotateYZ({ x, y, z }, angle) {
   const s = Math.sin(angle);
   const c = Math.cos(angle);
@@ -52,6 +57,7 @@ function rotateYZ({ x, y, z }, angle) {
     z: y * s + z * c,
   };
 }
+
 function rotateXY({ x, y, z }, angle) {
   const s = Math.sin(angle);
   const c = Math.cos(angle);
@@ -61,6 +67,7 @@ function rotateXY({ x, y, z }, angle) {
     z
   };
 }
+
 function translateZ({ x, y, z }, dz) {
   return {
     x, y, z: z + dz
@@ -73,29 +80,8 @@ const playtime = 10000;
 
 let dz = 1;
 let angle = 0;
-
 let running = true;
 
-
-const fs = [
-  [0, 1, 2, 3],
-  [4, 5, 6, 7],
-  [0, 4],
-  [1, 5],
-  [2, 6],
-  [3, 7],
-];
-
-// const vs = [
-//   { x: 0.5, y: 0.5, z: 1.5 },
-//   { x: -0.5, y: 0.5, z: 1.5 },
-//   { x: -0.5, y: -0.5, z: 1.5 },
-//   { x: 0.5, y: -0.5, z: 1.5 },
-//   { x: 1, y: 1, z: 1 },
-//   { x: -1, y: 1, z: 1 },
-//   { x: -1, y: -1, z: 1 },
-//   { x: 1, y: -1, z: 1 },
-// ];
 const vs = [
   { x: 0.25, y: 0.25, z: 0.25 },
   { x: -0.25, y: 0.25, z: 0.25 },
@@ -107,20 +93,9 @@ const vs = [
   { x: -0.25, y: -0.25, z: -0.25 },
   { x: 0.25, y: -0.25, z: -0.25 },
 ]
-// const vs = [
-//   { x: 0.5, y: 0.5, z: 1 },
-//   { x: -0.5, y: 0.5, z: 1 },
-//   { x: -0.5, y: -0.5, z: 1 },
-//   { x: 0.5, y: -0.5, z: 1 },
-//   { x: 0, y: 1, z: 1 },
-//   { x: -1, y: 0, z: 1 },
-//   { x: -0, y: -1, z: 1 },
-//   { x: 1, y: 0, z: 1 },
-//   { x: 0, y: 0, z: 1 },
-// ]
 function line(p1, p2) {
   ctx.lineWidth = 1;
-  ctx.strokeStyle = FG;
+  ctx.strokeStyle = EDGE;
   ctx.beginPath();
   ctx.moveTo(p1.x, p1.y);
   ctx.lineTo(p2.x, p2.y);
@@ -136,19 +111,20 @@ function renderEdge(length, f) {
   for (let i = 0; i < length; i++) {
     const p1 = vs[f[i]]
     const p2 = vs[f[(i + 1) % length]]
-    // console.log(f, " values: ", p1, p2)
-    // if (p1.z == 0 || p2.z == 0) continue
+
     const NEAR = 0.01;
+
     const v1 = translateZ(rotateXZ(p1, angle), dz);
     const v2 = translateZ(rotateXZ(p2, angle), dz);
     if (v1.z <= NEAR || v2.z <= NEAR) continue;
+
     line(
       screen(project(v1)),
       screen(project(v2))
     );
   }
 }
-const fs2 = [
+const fs = [
   // front back
   [0, 1, 2, 3],
   [4, 5, 6, 7],
@@ -159,9 +135,10 @@ const fs2 = [
   [0, 1, 5, 4],
   [2, 3, 7, 6],
 ];
+
 function renderFace(f, color) {
-  const NEAR = 0.01;
   const path = new Path2D();
+
   let v0 = translateZ(rotateXZ(vs[f[0]], angle), dz);
   if (v0.z <= NEAR) return;
 
@@ -179,6 +156,16 @@ function renderFace(f, color) {
   ctx.fillStyle = color;
   ctx.fill(path);
 }
+function faceDepth(fs, angle) {
+  fs.forEach(f => {
+    // console.log(f)
+    for (let i = 0; i < f.length; i++) {
+      const pt = translateZ(rotateXZ(vs[f[i]], angle), dz)
+      console.log(pt.z)
+    }
+
+  });
+}
 function animate() {
   if (!running) return
   // dz += 0.3 * dt;
@@ -187,11 +174,13 @@ function animate() {
   const colors = ["red", "blue", "orange", "green", "cyan", "magenta"];
 
   clr();
-  fs2.forEach((f, i) => {
+  fs.forEach((f, i) => {
     renderFace(f, colors[i % colors.length]);
+    // renderEdge(f.length, f)
   });
+  faceDepth(fs, angle)
 
-  requestAnimationFrame(animate)
+  // requestAnimationFrame(animate)
 };
 animate()
 
