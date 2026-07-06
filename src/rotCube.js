@@ -1,9 +1,9 @@
 console.log(game);
 const ctx = game.getContext("2d");
 
-const BG = '#494949';
-const EDGE = '#101010';
-const FG = 'rgb(100,255,50)';
+const BG = "#494949";
+const EDGE = "#101010";
+const FG = "rgb(100,255,50)";
 const NEAR = 0.01;
 
 game.width = 300;
@@ -26,15 +26,15 @@ function project({ x, y, z }) {
   return {
     x: x / z,
     y: y / z,
-    z
+    z,
   };
 }
 
 function screen({ x, y, z }) {
   return {
-    x: (x + 1) / 2 * width,
+    x: ((x + 1) / 2) * width,
     y: (1 - (y + 1) / 2) * height,
-    z
+    z,
   };
 }
 
@@ -64,13 +64,15 @@ function rotateXY({ x, y, z }, angle) {
   return {
     x: x * c - y * s,
     y: x * s + y * c,
-    z
+    z,
   };
 }
 
 function translateZ({ x, y, z }, dz) {
   return {
-    x, y, z: z + dz
+    x,
+    y,
+    z: z + dz,
   };
 }
 
@@ -92,7 +94,7 @@ const vs = [
   { x: -0.25, y: 0.25, z: -0.25 },
   { x: -0.25, y: -0.25, z: -0.25 },
   { x: 0.25, y: -0.25, z: -0.25 },
-]
+];
 function line(p1, p2) {
   ctx.lineWidth = 1;
   ctx.strokeStyle = EDGE;
@@ -109,8 +111,8 @@ function faceFill(x1, y1, x2, y2, color) {
 }
 function renderEdge(length, f) {
   for (let i = 0; i < length; i++) {
-    const p1 = vs[f[i]]
-    const p2 = vs[f[(i + 1) % length]]
+    const p1 = vs[f[i]];
+    const p2 = vs[f[(i + 1) % length]];
 
     const NEAR = 0.01;
 
@@ -118,10 +120,7 @@ function renderEdge(length, f) {
     const v2 = translateZ(rotateXZ(p2, angle), dz);
     if (v1.z <= NEAR || v2.z <= NEAR) continue;
 
-    line(
-      screen(project(v1)),
-      screen(project(v2))
-    );
+    line(screen(project(v1)), screen(project(v2)));
   }
 }
 const fs = [
@@ -157,18 +156,17 @@ function renderFace(f, color) {
   ctx.fill(path);
 }
 function faceDepth(fs, angle) {
-  fs.forEach(f => {
+  fs.forEach((f) => {
     // console.log(f)
     for (let i = 0; i < f.length; i++) {
-      const pt = translateZ(rotateXZ(vs[f[i]], angle), dz)
-      console.log(pt.z)
+      const pt = translateZ(rotateXZ(vs[f[i]], angle), dz);
+      console.log(pt.z);
     }
-
   });
 }
 function animate() {
-  if (!running) return
-  // dz += 0.3 * dt;
+  if (!running) return;
+  // dz -= 0.3 * dt;
   dz = 1;
   angle += Math.PI * dt;
   const colors = ["red", "blue", "orange", "green", "cyan", "magenta"];
@@ -178,15 +176,15 @@ function animate() {
     renderFace(f, colors[i % colors.length]);
     // renderEdge(f.length, f)
   });
-  faceDepth(fs, angle)
+  faceDepth(fs, angle);
 
-  // requestAnimationFrame(animate)
-};
-animate()
+  requestAnimationFrame(animate);
+}
+animate();
 
-pau.addEventListener('click', () => {
+pau.addEventListener("click", () => {
   running = false;
-})
+});
 // setTimeout(() => {
 //   animate();
 //   running = false;
@@ -196,15 +194,14 @@ pau.addEventListener('click', () => {
 //   ctx.textBaseline = "middle";
 //   ctx.fillText("Show Over!", width / 2, height / 2);
 // }, playtime);
-res.addEventListener('click', () => {
+res.addEventListener("click", () => {
   running = true;
   animate();
   setTimeout(() => {
     running = false;
-    console.log('Over!');
+    console.log("Over!");
   }, playtime);
-})
-reload.addEventListener('click', () => {
+});
+reload.addEventListener("click", () => {
   location.reload();
-})
-
+});
